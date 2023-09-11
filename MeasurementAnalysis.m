@@ -1,31 +1,39 @@
 close all
 
-Data = readtable('./Data/ACRE/cleaned_combined_indiana_2023_August.csv');
+% Data = readtable('./Data/ACRE/ACRE_2023August.csv');
+% Data = readtable('./Data/Happy Hollows/HappyHollows_2023Sep.csv');
+Data = readtable('./Data/Happy Hollows/happy_hallow_s21.csv');
 
 OperatorList = unique(Data(:,1));
-DataPerOperator = cell(height(OperatorList)-1,1);
+% DataPerOperator = cell(height(OperatorList)-1,1);
+DataPerOperator = cell(height(OperatorList),1);
 
-for n=2:height(OperatorList)
+for n=1:height(OperatorList)
     index = strfind(Data.operator,OperatorList.operator{n});
     index = cellfun(@(x) ~isempty(x) && x~=0,index);
     DataPerOperator{n} = Data(index,:);
 end
 
-[X,Y,~] = deg2utm(DataPerOperator{2}.latitude,DataPerOperator{2}.longitude);
+[X,Y,~] = deg2utm(DataPerOperator{1}.latitude,DataPerOperator{1}.longitude);
 
 figure(1)
 pointsize = 10;
-scatter(X,Y,pointsize,DataPerOperator{2}.rsrp)
+scatter(X,Y,pointsize,DataPerOperator{1}.rsrp)
 colorbar
 caxis([-140 -50]);
-title('AT&T Distribution')
+title('Lindberg Village RSRP Distribution (AT&T)')
 
 
 [X,Y,~] = deg2utm(DataPerOperator{3}.latitude,DataPerOperator{3}.longitude);
 
+[max_val,max_ind] = max(DataPerOperator{3}.rsrp);
+X(max_ind)
+Y(max_ind)
+% return
 figure(2)
 pointsize = 10;
-scatter(X,Y,pointsize,DataPerOperator{3}.rsrp)
+scatter(X,Y,pointsize,DataPerOperator{3}.rsrp); hold on;
+plot(X(max_ind),Y(max_ind),'khexagram','MarkerSize',5)
 colorbar
 title('GoogleFi Distribution')
 caxis([-140 -50]);

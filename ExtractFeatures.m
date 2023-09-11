@@ -5,7 +5,8 @@ DataType = 'sim';
 % dataname = "LycaMobile";
 % dataname = "GoogleFi";
 % dataname = "ATT";
-dataname = "Sim_885MHz_Verizon";
+% dataname = "Sim_885MHz_Verizon";
+dataname = "Sim_1900MHz_Verizon";
 % dataname = "Sim_885MHz_ATT";
 
 dirname_DSM = "./Data/DSM/";
@@ -52,8 +53,11 @@ switch DataType
     case 'sim'
 
         % Load Sim Data
-        load("./Data/ACRE/ACRE_885MHz/simState.mat");
-        load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
+        % load("./Data/ACRE/ACRE_885MHz/simState.mat");
+        % load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
+
+        load("./Data/ACRE/ACRE_1900MHz/simState.mat");
+        load("./Data/ACRE/ACRE_1900MHz/simConfigs.mat");
         
         RxPoints = simState.mapGridLatLonPts;
         MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0032 & RxPoints(:,2) < -86.9675);
@@ -65,8 +69,8 @@ switch DataType
         NumRxPoints = length(RxPoints);
         BSLocations = simState.CellAntsXyhEffective;
         
-        % BSLocations = BSLocations(1,:); % Verizon 1
-        BSLocations = BSLocations(3,:); % AT&T
+        BSLocations = BSLocations(1,:); % Verizon 1
+        % BSLocations = BSLocations(3,:); % AT&T
 
         NumBS = length(BSLocations(:,1));
 
@@ -235,6 +239,7 @@ for n = 1:length(BSLocations(:,1))
     
     end
 
+    % Get BS Height
     AoIMatrix = [DSMMatPerRxPoint.x,DSMMatPerRxPoint.y]; 
     RepMatXY = repmat([BSLocations(n,1),BSLocations(n,2)],length(AoIMatrix(:,1)),1);
     DistVec = sqrt(mean((AoIMatrix - RepMatXY).^2,2));
@@ -248,9 +253,14 @@ end
 
 NearestBSDist = zeros(NumRxPoints,1);
 ClutterHeight = zeros(NumRxPoints,1);
+TerrainHeight = zeros(NumRxPoints,1);
 RelativeBSHeight = zeros(NumRxPoints,1);
+TerrainRoughness2D = zeros(NumRxPoints,1);
+TerrainRoughness3D = zeros(NumRxPoints,1);
 Alpha = zeros(NumRxPoints,1);
-Radius = 100;
+TxHAAT = zeros(NumRxPoints,1);
+
+Radius = 50;
 
 % simState.CellAntsXyhEffective;
 % simState.mapGridXYPts;
@@ -402,6 +412,8 @@ for n = 1:NumRxPoints
     AoIMatrix = [DSMMatPerRxPoint.x,DSMMatPerRxPoint.y]; 
     % AoIMatrix = [DSMMatPerRxPoint.lidarLats,DSMMatPerRxPoint.lidarLons];
     % XYCandIndices = (AoIMatrix(:,1) <= RxPoints_XY(n,1) + Radius & AoIMatrix(:,1) >= RxPoints_XY(n,1) - Radius) & (AoIMatrix(:,2)<=RxPoints_XY(n,2)+Radius & AoIMatrix(:,2)>=RxPoints_XY(n,2)-Radius);
+    
+    % Find points in radius r
     XYCandIndices = find((AoIMatrix(:,1) <= RxPoints_XY(n,1) + Radius & AoIMatrix(:,1) >= RxPoints_XY(n,1) - Radius) & (AoIMatrix(:,2)<=RxPoints_XY(n,2)+Radius & AoIMatrix(:,2)>=RxPoints_XY(n,2)-Radius));
     xCand = AoIMatrix(XYCandIndices,1);
     yCand = AoIMatrix(XYCandIndices,2);
@@ -415,7 +427,16 @@ for n = 1:NumRxPoints
 
     RxPointHeight = DSMMatPerRxPoint.lidarZs(NearestPointInd(1)) - DHMMatPerRxPoint.lidarZs(NearestPointInd(1)) + 1.5;
     HeightList = DSMMatPerRxPoint.lidarZs(TargetIndices) - RxPointHeight;
-    ClutterHeight(n) = mean(HeightList);
+    % ClutterHeight(n) = mean(HeightList);
+    TerrainHeight(n) = mean(DSMMatPerRxPoint.lidarZs(TargetIndices));
+
+    % Terrain Roughness
+    [~,HeightInd] = sort(HeightList);
+    top10percentInd = (round(length(HeightInd)*0.1));
+    top90percentInd = (round(length(HeightInd)*0.9));
+    top10Height = DSMMatPerRxPoint.lidarZs(top10percentInd) - - DHMMatPerRxPoint.lidarZs(top10percentInd);
+    top90Height = DSMMatPerRxPoint.lidarZs(top90percentInd) - - DHMMatPerRxPoint.lidarZs(top90percentInd);
+    TerrainRoughness3D(n) = top90Height - top10Height;
 
     % Calculate the Average Height of the N-Nearest BSs
     
@@ -423,16 +444,23 @@ for n = 1:NumRxPoints
     DistVec = sqrt(mean((BSLocations(:,1:2) - RepMatXY).^2,2));
     [~,BSInd] = min(DistVec);
     % RelativeBSHeight(n) = mean(simState.CellAntsXyhEffective(BSInd,3));
-    RepMatXY = repmat([BSLocations(BSInd,1),BSLocations(BSInd,2)],length(AoIMatrix(:,1)),1);
-    DistVec = sqrt(mean((AoIMatrix - RepMatXY).^2,2));
 
+    % RepMatXY = repmat([BSLocations(BSInd,1),BSLocations(BSInd,2)],length(AoIMatrix(:,1)),1);
+    % DistVec = sqrt(mean((AoIMatrix - RepMatXY).^2,2));
+
+
+    BSLocations()
     RelativeBSHeight(n) = mean(BSLocations(BSInd,3)) - RxPointHeight;
+
+    TxHAAT(n) = mean(BSLocations(BSInd,3)) - TerrainHeight(n);
 
     % Nearest BS Distance
     NearestBSDist(n) = DistVec(BSInd(1));
     
     % Calculate Alpha
     Alpha(n) = (RelativeBSHeight(n)-ClutterHeight(n))/NearestBSDist(n);
+
+
     
     % plot(RxPoints_XY(n,1),RxPoints_XY(n,2),'r*');hold on;
     % plot(BSLocations(BSInd(1),1),BSLocations(BSInd(1),2),'bo');

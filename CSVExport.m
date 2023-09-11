@@ -6,6 +6,9 @@
 
 % load(strcat("./Data/ACRE/",dataname,".mat"));
 
+% NR EARFCN 520110 --> CenterFreq 2600.550
+%
+
 switch dataname
     case "ATT"
         Offset = 13;
