@@ -1,8 +1,8 @@
 clear all
 
 % dirname = "E:\CellCoverageMapper\Lidar_2019\IN\DSM\QL2_3DEP_LiDAR_IN_2017_2019_l2\"; % Lidar File Directory
-% dirname = "./Data/DHM/"; % Lidar File Directory
-dirname = "./Data/DSM/"; % Lidar File Directory
+dirname = "./Data/DHM/"; % Lidar File Directory
+% dirname = "./Data/DSM/"; % Lidar File Directory
 dir
 dir dirname
 listing = dir(dirname);
@@ -39,6 +39,6 @@ end
 
 listing(1:2) = [];
 clearvars -except listing
-% save('./Data/TileAddressBook_DHM.mat')
-save('./Data/TileAddressBook_DSM.mat')
+save('./Data/TileAddressBook_DHM.mat')
+% save('./Data/TileAddressBook_DSM.mat')
 
