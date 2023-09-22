@@ -16,7 +16,8 @@ function CenterFreq = Earfcn2Freq(earfcn,radiotech)
                 FrefOff = 24250.08;
             end
 
-            CenterFreq = FrefOff + Delta*(earfcn - NrefOff);
+            CenterFreq = (FrefOff + Delta*(earfcn - NrefOff))/1000;
+            
         case "LTE"
             
             earfcn_table = [850 1150 2000 2175 5145 5330 9820 66486 66661 66936 1001 1125 2100 2250 5035 39750 39948 40072 66736 66911 67011 125290];

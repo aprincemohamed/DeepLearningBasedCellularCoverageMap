@@ -1,51 +1,58 @@
 % clear all
 
-dataname = ["./Data/ACRE/ACRE_S21.mat","./Data/ACRE/ACRE_Lyca.mat","./Data/ACRE/ACRE_GoogleFi.mat"];
+% Dataname = ["./Data/Lindberg_S20.mat","./Data/Lindberg_S8.mat","./Data/HappyHollows_S20.mat","./Data/HappyHollows_S8.mat","./Data/ACRE_Lyca.mat"];
+% Filename = ["Lindberg_S20","Lindberg_S8","HappyHollows_S20","HappyHollows_S8","ACRE_Lyca"];
 
-for n = 1:length(dataname)
+% Dataname = ["./Data/HappyHollows_S21.mat"];
+% Filename = ["HappyHollows_S21"];
 
-    switch dataname(n)
-        case "Lindberg_S8"
-            Offset = 13;
-        case "ACRE_Lyca"
-             Offset = 13;
-        case "ACRE_GoogleFi"
-             Offset = 13;
-        % case "ATT"
-        %     Offset = 13;
-        % case "GoogleFi"
-        %     Offset = 8;
-        % case "LycaMobile"
-        %     Offset = 15;
-    end
+% Dataname = ["./Data/ACRE_GoogleFi.mat"];
+% Filename = ["ACRE_GoogleFi"];
+% 
+% Dataname = ["./Data/ACRE_S21.mat"];
+% Filename = ["ACRE_S21"];
+
+Dirname = "./Data/Sim/"; % Lidar File Directory
+% dir
+% dir Dirname
+Dataname = dir(Dirname);
+Dataname(1:2) = [];
+
+for q = 1:length(Dataname)
+
+    load(strcat(Dirname,Dataname(q).name))
     
     switch DataType
         case 'real'
             % FeatureMatrix = [DataPerOperator{4}.rsrp-Offset,NearestBSDist,ClutterHeight,RelativeBSHeight,Alpha];
-Features.ClutterHeight(n) = mean(HeightList);
-    Features.TerrainHeight(n) = mean(DSMMatPerRxPoint.lidarZs(TargetIndices));
-    Features.TerrainRoughness3D(n) = top10Height - top90Height;
-     Features.RelativeBSHeight(n) = BSLocations(n,3) - RxPointHeight;
-     Features.TxHAAT(n) = BSLocations(n,3) - Features.TerrainHeight(n);
-     Features.NearestBSDist(n) = norm(BSLocations(n,1:2)-RxPoints_XY(n,1:2));
-     Features.TerrainRoughness3D(n) = (Features.RelativeBSHeight(n)-Features.ClutterHeight(n))/Features.NearestBSDist(n);
-     Features.CenterFreq(n) = Earfcn2Freq(DataPerOperator.earfcn(n),tech{1});
 
-            FeatureMatrix = [DataPerOperator.rsrp,Features.CenterFreq,Features.NearestBSDist,Features.ClutterHeight,Features.TerrainRoughness3D,Features.RelativeBSHeight,Features.TxHAAT]
+            FeatureMatrix = [DataPerOperator.rsrp,Features.CenterFreq',Features.NearestBSDist',Features.ClutterHeight',-Features.TerrainRoughness3D',Features.RelativeBSHeight',Features.TxHAAT',Features.Alpha'];
             FeatureMatrix = array2table(FeatureMatrix);
-            FeatureMatrix.Properties.VariableNames(1:5) = {'Pathloss','NearestBSDist','ClutterHeight','BSHeight','Alpha'};
+            FeatureMatrix.Properties.VariableNames(1:8) = {'Pathloss','CenterFreq','NearestBSDist','ClutterHeight','TerrainRoughness','BSHeight','TxHAAT','Alpha'};
             % csvwrite('.\Data\ACRE\',M)
             
-            writetable(FeatureMatrix,strcat("./Data/ACRE/",dataname,".csv"))
+            % writetable(FeatureMatrix,strcat("./Data/",Filename(q),".csv"))
+            Filename = Dataname(q).name;
+            Filename(end-3:end) = [];
+            writetable(FeatureMatrix,strcat("./Data/",Filename,".csv"))
+
+            
+
     
         case 'sim'
-    
-            FeatureMatrix = [-simState.coverageItmMapsForEachCell{1,1}{1,1}(MaskInd)',NearestBSDist,ClutterHeight,RelativeBSHeight,Alpha];
+            % 
+            % FeatureMatrix = [-simState.coverageItmMapsForEachCell{1,1}{1,1}(MaskInd)',NearestBSDist,ClutterHeight,RelativeBSHeight,Alpha];
+            % FeatureMatrix = array2table(FeatureMatrix);
+            % FeatureMatrix.Properties.VariableNames(1:5) = {'Pathloss','NearestBSDist','ClutterHeight','BSHeight','Alpha'};
+            % % csvwrite('.\Data\ACRE\',M)
+            FeatureMatrix = [-simState.coverageItmMapsForEachCell{1,1}{1,1}',Features.CenterFreq',Features.NearestBSDist',Features.ClutterHeight',-Features.TerrainRoughness3D',Features.RelativeBSHeight',Features.TxHAAT',Features.Alpha'];
             FeatureMatrix = array2table(FeatureMatrix);
-            FeatureMatrix.Properties.VariableNames(1:5) = {'Pathloss','NearestBSDist','ClutterHeight','BSHeight','Alpha'};
-            % csvwrite('.\Data\ACRE\',M)
+            FeatureMatrix.Properties.VariableNames(1:8) = {'Pathloss','CenterFreq','NearestBSDist','ClutterHeight','TerrainRoughness','BSHeight','TxHAAT','Alpha'};
+            % csvwrite('.\Data\ACRE\',M))
             
-            writetable(FeatureMatrix,strcat("./Data/ACRE/",dataname,".csv"))
+            Filename = Dataname(q).name;
+            Filename(end-3:end) = [];
+            writetable(FeatureMatrix,strcat("./Data/",Filename,".csv"))
     end
 
 end

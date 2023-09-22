@@ -1,7 +1,7 @@
 close all
 
 % Data = readtable('./Data/Happy Hollows/happy_hallow_s21.csv');
-Data = readtable('./Data/Lindberg Village/lindberg_s8.csv');
+Data = readtable('./Data/Lindberg Village/lindberg_s20.csv');
 
 OperatorList = unique(Data(:,1));
 % DataPerOperator = cell(height(OperatorList)-1,1);
@@ -47,25 +47,25 @@ title('Lindberg Village RSRP Distribution (AT&T)')
 % caxis([-140 -50]);
 
 
-% load("./Data/ACRE/ACRE_885MHz/simState.mat");
-% load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
-% 
-% RxPoints = simState.mapGridLatLonPts;
-% % MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0034 & RxPoints(:,2) < -86.9674);
-% % RxPoints = RxPoints(MaskInd,:);
-% [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
-% RxPoints_XY = [x_tmp,y_tmp];
-% 
-% NumRxPoints = length(RxPoints);
-% BSLocations = simState.CellAntsXyhEffective;
+load("./Data/Lindberg Village/Sim/Simulation_LindbergVillage_ML_Carrier_2538.2MHz_LiDAR_IN_DSM_2019/simState.mat");
+load("./Data/Lindberg Village/Sim/Simulation_LindbergVillage_ML_Carrier_2538.2MHz_LiDAR_IN_DSM_2019/simConfigs.mat");
+
+RxPoints = simState.mapGridLatLonPts;
+% MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0034 & RxPoints(:,2) < -86.9674);
+% RxPoints = RxPoints(MaskInd,:);
+[x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
+RxPoints_XY = [x_tmp,y_tmp];
+
+NumRxPoints = length(RxPoints);
+BSLocations = simState.CellAntsXyhEffective;
 
 % 
-% figure(4)
-% pointsize = 10;
-% scatter(RxPoints_XY(:,1),RxPoints_XY(:,2),pointsize,-simState.coverageItmMapsForEachCell{1,1}{1,1});hold on;
-% plot(BSLocations(1,1),BSLocations(1,2),'khexagram','MarkerSize',20);
-% colorbar
-% title('Sim (Verizon) Distribution')
+figure(4)
+pointsize = 10;
+scatter(RxPoints_XY(:,1),RxPoints_XY(:,2),pointsize,-simState.coverageItmMapsForEachCell{1,1}{1,1});hold on;
+plot(BSLocations(1,1),BSLocations(1,2),'khexagram','MarkerSize',20);
+colorbar
+title('Sim (Lindberg) Distribution')
 % 
 % 
 % figure(5)
@@ -74,4 +74,4 @@ title('Lindberg Village RSRP Distribution (AT&T)')
 % plot(BSLocations(3,1),BSLocations(3,2),'khexagram','MarkerSize',20);
 % colorbar
 % title('Sim (AT&T) Distribution')
-% % caxis([-140 -50]);
+% caxis([-140 -50]);

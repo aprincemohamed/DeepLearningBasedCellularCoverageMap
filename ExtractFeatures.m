@@ -1,25 +1,29 @@
 clear all
 
-DataType = 'real';
-% DataType = 'sim';
+% DataType = 'real';
+DataType = 'sim';
 
+% dataname = ["ACRE_S21","ACRE_Lyca","ACRE_GoogleFi"];
+% filename = ["./Data/ACRE/S21.csv","./Data/ACRE/lyca.csv","./Data/ACRE/google_fi.csv"];
 
-% dataname = ["Lindberg_S20"];
-% filename = ["./Data/Lindberg Village/lindberg_s20.csv"];
+% dataname = ["Lindberg_S8","Lindberg_S20"];
+% filename = ["./Data/Lindberg Village/lindberg_s8.csv","./Data/Lindberg Village/lindberg_s20.csv"];
 
-dataname = ["ACRE_S21","ACRE_Lyca","ACRE_GoogleFi","Lindberg_S8"];
-filename = ["./Data/ACRE/S21.csv","./Data/ACRE/lyca.csv","./Data/ACRE/google_fi.csv","./Data/Lindberg Village/lindberg_s8.csv"];
+% dataname = ["HappyHollows_S8","HappyHollows_S20","HappyHollows_S21"];
+% filename = ["./Data/Happy Hollows/happy_hallow_s8.csv","./Data/Happy Hollows/happy_hallow_s20.csv","./Data/Happy Hollows/happy_hallow_s21.csv"];
+
+% dataname = "Sim_885MHz_Verizon";
+% dataname = "Sim_1900MHz_Verizon";
+% dataname = "Sim_885MHz_ATT";
+
+dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
+dir
+dir dirname
+dataname = dir(dirname);
+dataname(1:2) = [];
 
 for p = 1:length(dataname)
 
-
-    % dataname = "ACRE_LycaMobile";
-    % dataname = "ACRE_GoogleFi";
-    
-    % dataname = "Sim_885MHz_Verizon";
-    % dataname = "Sim_1900MHz_Verizon";
-    % dataname = "Sim_885MHz_ATT";
-    
     dirname_DSM = "./Data/DSM/";
     dirname_DHM = "./Data/DHM/";
     
@@ -27,13 +31,11 @@ for p = 1:length(dataname)
         case 'real'
             % Load Real Data
     
-            DataPerOperator = readtable(filename(p));         
-
+            DataPerOperator = readtable(filename(p));    
             DataPerOperator(DataPerOperator.cell_name == 0,:) = [];
             RxPoints = [DataPerOperator.latitude,DataPerOperator.longitude];
             [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
             RxPoints_XY = [x_tmp,y_tmp];
-            
     
             NumRxPoints = length(RxPoints);
             BSLocations = CellLocFinder(DataPerOperator.cell_name);
@@ -49,13 +51,15 @@ for p = 1:length(dataname)
             % load("./Data/ACRE/ACRE_885MHz/simState.mat");
             % load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
     
-            load("./Data/ACRE/ACRE_1900MHz/simState.mat");
-            load("./Data/ACRE/ACRE_1900MHz/simConfigs.mat");
+            % load("./Data/ACRE/ACRE_1900MHz/simState.mat");
+            % load("./Data/ACRE/ACRE_1900MHz/simConfigs.mat");
+
+            load(strcat(dirname,dataname(p).name,'/simState.mat'))
+            load(strcat(dirname,dataname(p).name,'/simConfigs.mat'))
             
             RxPoints = simState.mapGridLatLonPts;
-            MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0032 & RxPoints(:,2) < -86.9675);
-            RxPoints = RxPoints(MaskInd,:);
-            % RxPoints = [linspace(40.4648,40.4920,1000)',linspace(-87.0033,-86.9675,1000)'];
+            % MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0032 & RxPoints(:,2) < -86.9675);
+            % RxPoints = RxPoints(MaskInd,:);
             [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
             RxPoints_XY = [x_tmp,y_tmp];
             
@@ -101,7 +105,7 @@ for p = 1:length(dataname)
     TileIndex = (index1 | index2) & (index3 | index4);
     % TileList = listing(TileIndex).name;
     
-    DSMAddressBook = listing(TileIndex);
+    DSMAddressBook = listing;
     
     
     
@@ -126,20 +130,111 @@ for p = 1:length(dataname)
     TileIndex = (index1 | index2) & (index3 | index4);
     % TileList = listing(TileIndex).name;
     
-    DHMAddressBook = listing(TileIndex);
-    
-    % Set the Area of Interest (AoI)
+    DHMAddressBook = listing;
 
+
+    % Import DHM Tiles
+
+    TileList_DHM = DHMAddressBook(TileIndex);
+    NumTiles_DHM = sum(TileIndex);
+
+    DHMMatPerRxPoint.lidarLats = [];
+    DHMMatPerRxPoint.lidarLons = [];
+    DHMMatPerRxPoint.x = [];
+    DHMMatPerRxPoint.y = [];
+    DHMMatPerRxPoint.lidarZs = [];
+    DSMMatPerRxPoint.lidarLats = [];
+    DSMMatPerRxPoint.lidarLons = [];
+    DSMMatPerRxPoint.x = [];
+    DSMMatPerRxPoint.y = [];
+    DSMMatPerRxPoint.lidarZs = [];
+    % DHMMatPerRxPoint = zeros(NumTiles_DHM,3);
+
+    for k = 1:NumTiles_DHM
+        % structSize = 10^6*NumTiles_DHM;
+
+
+        DHMfilename = strcat(dirname_DHM,TileList_DHM(k).name);
+
+        maxAllowedAbsLidarZ = 10^38;
+        flagGenFigsQuietly = true;
+
+        % Load the repaired tile.
+        [lidarDataImg, spatialRef] ...
+            = readgeoraster(DHMfilename);
+        lidarDataImg(abs( ...
+            lidarDataImg(:))>maxAllowedAbsLidarZ) = nan;
+
+        % Essentailly meshgrid matrices.
+        [lidarRasterXs, lidarRasterYs] = worldGrid(spatialRef);
+
+        % Column vectors.
+        [lidarLats, lidarLons] = projinv( ...
+            spatialRef.ProjectedCRS, ...
+            lidarRasterXs(:), lidarRasterYs(:));
+
+        DHMMatPerRxPoint.lidarLats = [DHMMatPerRxPoint.lidarLats;lidarLats];
+        DHMMatPerRxPoint.lidarLons = [DHMMatPerRxPoint.lidarLons;lidarLons];
+
+        % Convert survery feet to meter.
+        LidarZs_Tmp = double(squeeze(distdim(lidarDataImg(:), 'ft', 'm')));
+        DHMMatPerRxPoint.lidarZs = [DHMMatPerRxPoint.lidarZs;LidarZs_Tmp];
+
+        % Convert LatLong to UTM
+        [x_tmp,y_tmp,DHMMatPerRxPoint.UtmZone] = deg2utm(lidarLats,lidarLons);
+        % DHMMatPerRxPoint.x = x_tmp;
+        % DHMMatPerRxPoint.y = y_tmp;
+
+        % DHMMatPerRxPoint.LidarZs = [DHMMatPerRxPoint.LidarZs,double(LidarZs_Tmp)];
+        DHMMatPerRxPoint.x = [DHMMatPerRxPoint.x;x_tmp];
+        DHMMatPerRxPoint.y = [DHMMatPerRxPoint.y;y_tmp];
+
+    end
+    % end
+
+    % Import DSM Tiles
+
+    TileList_DSM = DSMAddressBook(TileIndex);
+    NumTiles_DSM = sum(TileIndex);
+
+    % DSMMatPerRxPoint = zeros(NumTiles_DSM,3);
+
+    for k = 1:NumTiles_DSM
+
+        DSMfilename = strcat(dirname_DSM,TileList_DSM(k).name);
+
+        maxAllowedAbsLidarZ = 10^38;
+        flagGenFigsQuietly = true;
+
+        % Load the repaired tile.
+        [lidarDataImg, spatialRef] ...
+            = readgeoraster(DSMfilename);
+        lidarDataImg(abs( ...
+            lidarDataImg(:))>maxAllowedAbsLidarZ) = nan;
+
+        % Essentailly meshgrid matrices.
+        [lidarRasterXs, lidarRasterYs] = worldGrid(spatialRef);
+
+        % Column vectors.
+        [lidarLats, lidarLons] = projinv( ...
+            spatialRef.ProjectedCRS, ...
+            lidarRasterXs(:), lidarRasterYs(:));
+
+        DSMMatPerRxPoint.lidarLats = [DSMMatPerRxPoint.lidarLats;lidarLats];
+        DSMMatPerRxPoint.lidarLons = [DSMMatPerRxPoint.lidarLons;lidarLons];
+
+        % Convert survery feet to meter.
+        LidarZs_Tmp = double(squeeze(distdim(lidarDataImg(:), 'ft', 'm')));
+        LidarZs_Tmp(LidarZs_Tmp==0) = min(LidarZs_Tmp(LidarZs_Tmp>0)); % Filter out zeros
+        DSMMatPerRxPoint.lidarZs = [DSMMatPerRxPoint.lidarZs;LidarZs_Tmp];
+
+        % % Convert LatLong to UTM
+        [x_tmp,y_tmp,DSMMatPerRxPoint.UtmZone] = deg2utm(lidarLats,lidarLons);
+        DSMMatPerRxPoint.x = [DSMMatPerRxPoint.x;x_tmp];
+        DSMMatPerRxPoint.y = [DSMMatPerRxPoint.y;y_tmp];
+
+    end
     
-    % NearestBSDist = zeros(NumRxPoints,1);
-    % ClutterHeight = zeros(NumRxPoints,1);
-    % TerrainHeight = zeros(NumRxPoints,1);
-    % RelativeBSHeight = zeros(NumRxPoints,1);
-    % TerrainRoughness2D = zeros(NumRxPoints,1);
-    % TerrainRoughness3D = zeros(NumRxPoints,1);
-    % Alpha = zeros(NumRxPoints,1);
-    % TxHAAT = zeros(NumRxPoints,1);
-    % CenterFreq = zeros(NumRxPoints,1);
     
     Radius = 50;
     
@@ -147,6 +242,8 @@ for p = 1:length(dataname)
     % simState.mapGridXYPts;
 
     clear Features  
+
+    AoIMatrix = [DSMMatPerRxPoint.x,DSMMatPerRxPoint.y]; 
     
     
     
@@ -155,147 +252,13 @@ for p = 1:length(dataname)
         RxPoint_Lat = RxPoints(n,1);
         RxPoint_Lon = RxPoints(n,2);
     
-        % Import DHM Tiles
-    
-        LatLimMat = zeros(length(DHMAddressBook),2);
-        LongLimMat = zeros(length(DHMAddressBook),2);
-    
-        for l = 1:length(DHMAddressBook)
-            LatLimMat(l,:) = DHMAddressBook(l).LatLim;
-            LongLimMat(l,:) = DHMAddressBook(l).LongLim;
-        end    
-        
-        index1 = LatLimMat(:,1) <= RxPoint_Lat & LatLimMat(:,2) >= RxPoint_Lat;
-        index2 = LongLimMat(:,1) <= RxPoint_Lon & LongLimMat(:,2) >= RxPoint_Lon;
-        index = find(TileIndex) ~= find(index1 & index2);
-    
-    
-        % if n == 1 || find(TileIndex) ~= find(index1 & index2)
-        if n == 1 || find(index1 & index2) > 0
-            
-                TileIndex = index1 & index2;
-                TileList_DHM = DHMAddressBook(TileIndex);
-                NumTiles_DHM = sum(TileIndex);
-
-                DHMMatPerRxPoint.lidarLats = [];
-                DHMMatPerRxPoint.lidarLons = [];
-                DHMMatPerRxPoint.x = [];
-                DHMMatPerRxPoint.y = [];
-                DSMMatPerRxPoint.lidarLats = [];
-                DSMMatPerRxPoint.lidarLons = [];
-                DSMMatPerRxPoint.x = [];
-                DSMMatPerRxPoint.y = [];
-                % DHMMatPerRxPoint = zeros(NumTiles_DHM,3);
-            
-                for k = 1:NumTiles_DHM
-                    % structSize = 10^6*NumTiles_DHM;
-                    
-                
-                    DHMfilename = strcat(dirname_DHM,TileList_DHM(k).name);
-                
-                    maxAllowedAbsLidarZ = 10^38;
-                    flagGenFigsQuietly = true;
-                   
-                    % Load the repaired tile.
-                    [lidarDataImg, spatialRef] ...
-                        = readgeoraster(DHMfilename);
-                    lidarDataImg(abs( ...
-                        lidarDataImg(:))>maxAllowedAbsLidarZ) = nan;
-                
-                    % Essentailly meshgrid matrices.
-                    [lidarRasterXs, lidarRasterYs] = worldGrid(spatialRef);
-                
-                    % Column vectors.
-                    [lidarLats, lidarLons] = projinv( ...
-                        spatialRef.ProjectedCRS, ...
-                        lidarRasterXs(:), lidarRasterYs(:));
-
-                    DHMMatPerRxPoint.lidarLats = [DHMMatPerRxPoint.lidarLats;lidarLats];
-                    DHMMatPerRxPoint.lidarLons = [DHMMatPerRxPoint.lidarLons;lidarLons];
-                
-                    % Convert survery feet to meter.
-                    LidarZs_Tmp = double(squeeze(distdim(lidarDataImg(:), 'ft', 'm')));
-                    DHMMatPerRxPoint.lidarZs = LidarZs_Tmp;
-                
-                    % Convert LatLong to UTM
-                    [x_tmp,y_tmp,DHMMatPerRxPoint.UtmZone] = deg2utm(DHMMatPerRxPoint.lidarLats,DHMMatPerRxPoint.lidarLons);
-                    % DHMMatPerRxPoint.x = x_tmp;
-                    % DHMMatPerRxPoint.y = y_tmp;
-            
-                    % DHMMatPerRxPoint.LidarZs = [DHMMatPerRxPoint.LidarZs,double(LidarZs_Tmp)];
-                    DHMMatPerRxPoint.x = [DHMMatPerRxPoint.x,x_tmp];
-                    DHMMatPerRxPoint.y = [DHMMatPerRxPoint.y,y_tmp];
-                
-                end
-        % end
-    
-        % Import DSM Tiles
-    
-                TileList_DSM = DSMAddressBook(TileIndex);
-                NumTiles_DSM = sum(TileIndex);
-            
-                % DSMMatPerRxPoint = zeros(NumTiles_DSM,3);
-            
-                for k = 1:NumTiles_DSM
-                
-                    DSMfilename = strcat(dirname_DSM,TileList_DSM(k).name);
-                
-                    maxAllowedAbsLidarZ = 10^38;
-                    flagGenFigsQuietly = true;
-                   
-                    % Load the repaired tile.
-                    [lidarDataImg, spatialRef] ...
-                        = readgeoraster(DSMfilename);
-                    lidarDataImg(abs( ...
-                        lidarDataImg(:))>maxAllowedAbsLidarZ) = nan;
-                
-                    % Essentailly meshgrid matrices.
-                    [lidarRasterXs, lidarRasterYs] = worldGrid(spatialRef);
-                
-                    % Column vectors.
-                    [lidarLats, lidarLons] = projinv( ...
-                        spatialRef.ProjectedCRS, ...
-                        lidarRasterXs(:), lidarRasterYs(:));
-
-                    DSMMatPerRxPoint.lidarLats = [DSMMatPerRxPoint.lidarLats;lidarLats];
-                    DSMMatPerRxPoint.lidarLons = [DSMMatPerRxPoint.lidarLons;lidarLons];
-                
-                    % Convert survery feet to meter.
-                    LidarZs_Tmp = double(squeeze(distdim(lidarDataImg(:), 'ft', 'm')));
-                    LidarZs_Tmp(LidarZs_Tmp==0) = min(LidarZs_Tmp(LidarZs_Tmp>0)); % Filter out zeros
-                    DSMMatPerRxPoint.lidarZs = LidarZs_Tmp;
-                
-                    % % Convert LatLong to UTM
-                    [x_tmp,y_tmp,DSMMatPerRxPoint.UtmZone] = deg2utm(DSMMatPerRxPoint.lidarLats,DSMMatPerRxPoint.lidarLons);   
-                    DSMMatPerRxPoint.x = [DSMMatPerRxPoint.x,x_tmp];
-                    DSMMatPerRxPoint.y = [DSMMatPerRxPoint.y,y_tmp];
-                
-                end
-        end
-    
-        % figure(1)
-        % x = linspace(min(DHMMatPerRxPoint.x),max(DHMMatPerRxPoint.x),200) ;
-        % y = linspace(min(DHMMatPerRxPoint.y),max(DHMMatPerRxPoint.y),200) ;
-        % [Xi,Yi] = meshgrid(x,y) ;
-        % Zi = griddata(DHMMatPerRxPoint.x,DHMMatPerRxPoint.y,DHMMatPerRxPoint.lidarZs,Xi,Yi) ;
-        % surf(Xi,Yi,Zi)
-        % colorbar
-        % 
-        % figure(2)
-        % x = linspace(min(DSMMatPerRxPoint.x),max(DSMMatPerRxPoint.x),200) ;
-        % y = linspace(min(DSMMatPerRxPoint.y),max(DSMMatPerRxPoint.y),200) ;
-        % [Xi,Yi] = meshgrid(x,y) ;
-        % Zi = griddata(DSMMatPerRxPoint.x,DSMMatPerRxPoint.y,DSMMatPerRxPoint.lidarZs,Xi,Yi) ;
-        % surf(Xi,Yi,Zi)
-        % colorbar
-    
         if n > 1
             if NumTiles_DHM ~= NumTiles_DSM
                 disp("Tile Number MisMatch");
             end
         end
     
-        AoIMatrix = [DSMMatPerRxPoint.x,DSMMatPerRxPoint.y]; 
+        
         % AoIMatrix = [DSMMatPerRxPoint.lidarLats,DSMMatPerRxPoint.lidarLons];
         % XYCandIndices = (AoIMatrix(:,1) <= RxPoints_XY(n,1) + Radius & AoIMatrix(:,1) >= RxPoints_XY(n,1) - Radius) & (AoIMatrix(:,2)<=RxPoints_XY(n,2)+Radius & AoIMatrix(:,2)>=RxPoints_XY(n,2)-Radius);
         
@@ -345,16 +308,10 @@ for p = 1:length(dataname)
         % plot(RxPoints_XY(n,1),RxPoints_XY(n,2),'r*');hold on;
         % plot(BSLocations(BSInd(1),1),BSLocations(BSInd(1),2),'bo');
 
-        clear DHMMatPerRxPoint DSMMatPerRxPoint
+        
         
     end
 
-    
-
-
-   
-    
-    
     
     
     figure(3)
@@ -403,8 +360,25 @@ for p = 1:length(dataname)
     % csvwrite('.\Data\',M)
     
     % save("./Data/LycaMobile.Mat")
-    save(strcat("./Data/ACRE/",dataname(p),".mat"))
+    save(strcat("./Data/",dataname(p),".mat"))
 
 
 end
+
+
+        % figure(1)
+        % x = linspace(min(DHMMatPerRxPoint.x),max(DHMMatPerRxPoint.x),200) ;
+        % y = linspace(min(DHMMatPerRxPoint.y),max(DHMMatPerRxPoint.y),200) ;
+        % [Xi,Yi] = meshgrid(x,y) ;
+        % Zi = griddata(DHMMatPerRxPoint.x,DHMMatPerRxPoint.y,DHMMatPerRxPoint.lidarZs,Xi,Yi) ;
+        % surf(Xi,Yi,Zi)
+        % colorbar
+        % 
+        % figure(2)
+        % x = linspace(min(DSMMatPerRxPoint.x),max(DSMMatPerRxPoint.x),200) ;
+        % y = linspace(min(DSMMatPerRxPoint.y),max(DSMMatPerRxPoint.y),200) ;
+        % [Xi,Yi] = meshgrid(x,y) ;
+        % Zi = griddata(DSMMatPerRxPoint.x,DSMMatPerRxPoint.y,DSMMatPerRxPoint.lidarZs,Xi,Yi) ;
+        % surf(Xi,Yi,Zi)
+        % colorbar
 

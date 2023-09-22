@@ -68,7 +68,9 @@ function CellLoc = CellLocFinder(cellId)
 
     CellLocTable = [CellLocTable,x,y];
     CellLocTable(:,3) = 0.3048*CellLocTable(:,3);
-    CellLocTable(:,3) = BSHeight;
+
+    % CellLocTable = [CellLocTable(:,1:2),x,y];    
+    % CellLocTable = [CellLocTable,BSHeight];
     
 
     for n = 1:length(cellId)
