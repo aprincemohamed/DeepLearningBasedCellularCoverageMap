@@ -1,4 +1,4 @@
-clear all
+% clear all
 
 % DataType = 'sim';
 % 
@@ -17,9 +17,6 @@ for p = 1:length(dataname)
     % Load Sim Data
     % load("./Data/ACRE/ACRE_885MHz/simState.mat");
     % load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
-
-    % load("./Data/ACRE/ACRE_1900MHz/simState.mat");
-    % load("./Data/ACRE/ACRE_1900MHz/simConfigs.mat");
 
     load(strcat(dirname,dataname(p).name,'/simState.mat'))
     load(strcat(dirname,dataname(p).name,'/simConfigs.mat'))
@@ -283,41 +280,42 @@ for p = 1:length(dataname)
 
         end
 
-        close all
-
-        figure(2)
-        x = linspace(min(RxPoints_XY(:,1)),max(RxPoints_XY(:,1)),100) ;
-        y = linspace(min(RxPoints_XY(:,2)),max(RxPoints_XY(:,2)),100) ;
-        [Xi,Yi] = meshgrid(x,y) ;
-        Zi = griddata(RxPoints_XY(:,1),RxPoints_XY(:,2),Features.NearestBSDist,Xi,Yi) ;
-        % plot3(BSLocation(1),BSLocation(2),BSLocation(3),'r*', MarkerSize,15)
-        surf(Xi,Yi,Zi)
-        colorbar
-
-
-        figure(3)
-        % x = linspace(min(Features.ClutterHeight(:,1)),max(Features.ClutterHeight(:,1)),200) ;
-        % y = linspace(min(Features.ClutterHeight(:,2)),max(Features.ClutterHeight(:,2)),200) ;
-        x = linspace(min(RxPoints_XY(:,1)),max(RxPoints_XY(:,1)),100) ;
-        y = linspace(min(RxPoints_XY(:,2)),max(RxPoints_XY(:,2)),100) ;
-        [Xi,Yi] = meshgrid(x,y) ;
-        Zi = griddata(RxPoints_XY(:,1),RxPoints_XY(:,2),Features.ClutterHeight,Xi,Yi) ;
-        surf(Xi,Yi,Zi)
-        colorbar
-        % xlim([min(RxPoints_XY(:,1)),max(RxPoints_XY(:,1))]);
-        % ylim([min(RxPoints_XY(:,2)),max(RxPoints_XY(:,2))]);
-
-
-        figure(4)
-        imagesc(RxPoints_XY(:,1),RxPoints_XY(:,2),Features.ClutterHeight)
-        xlabel('Angle'), ylabel('Range Bins')
-        box on
-        % view(2)
-        colorbar
-
-        figure(5)
-        ecdf(Features.ClutterHeight(:))
-        xlabel('Average Clutter Height')
+        % Plot to check whether the features are generated correctly 
+        % close all
+        % 
+        % figure(2)
+        % x = linspace(min(RxPoints_XY(:,1)),max(RxPoints_XY(:,1)),100) ;
+        % y = linspace(min(RxPoints_XY(:,2)),max(RxPoints_XY(:,2)),100) ;
+        % [Xi,Yi] = meshgrid(x,y) ;
+        % Zi = griddata(RxPoints_XY(:,1),RxPoints_XY(:,2),Features.NearestBSDist,Xi,Yi) ;
+        % % plot3(BSLocation(1),BSLocation(2),BSLocation(3),'r*', MarkerSize,15)
+        % surf(Xi,Yi,Zi)
+        % colorbar
+        % 
+        % 
+        % figure(3)
+        % % x = linspace(min(Features.ClutterHeight(:,1)),max(Features.ClutterHeight(:,1)),200) ;
+        % % y = linspace(min(Features.ClutterHeight(:,2)),max(Features.ClutterHeight(:,2)),200) ;
+        % x = linspace(min(RxPoints_XY(:,1)),max(RxPoints_XY(:,1)),100) ;
+        % y = linspace(min(RxPoints_XY(:,2)),max(RxPoints_XY(:,2)),100) ;
+        % [Xi,Yi] = meshgrid(x,y) ;
+        % Zi = griddata(RxPoints_XY(:,1),RxPoints_XY(:,2),Features.ClutterHeight,Xi,Yi) ;
+        % surf(Xi,Yi,Zi)
+        % colorbar
+        % % xlim([min(RxPoints_XY(:,1)),max(RxPoints_XY(:,1))]);
+        % % ylim([min(RxPoints_XY(:,2)),max(RxPoints_XY(:,2))]);
+        % 
+        % 
+        % figure(4)
+        % imagesc(RxPoints_XY(:,1),RxPoints_XY(:,2),Features.ClutterHeight)
+        % xlabel('Angle'), ylabel('Range Bins')
+        % box on
+        % % view(2)
+        % colorbar
+        % 
+        % figure(5)
+        % ecdf(Features.ClutterHeight(:))
+        % xlabel('Average Clutter Height')
 
         % figure(6)
         % x = linspace(min(simState.CellAntsXyhEffective(:,1)),max(simState.CellAntsXyhEffective(:,1)),200) ;
@@ -329,18 +327,17 @@ for p = 1:length(dataname)
         % xlim([min(simState.CellAntsXyhEffective(:,1)),max(simState.CellAntsXyhEffective(:,1))]);
         % ylim([min(simState.CellAntsXyhEffective(:,2)),max(simState.CellAntsXyhEffective(:,2))]);
 
-        figure(7)
-        pointsize = 10;
-        scatter(RxPoints_XY(:,1),RxPoints_XY(:,2),pointsize,Features.ClutterHeight)
-        % colorbar
-        % caxis([-140 -50]);
-        title('Average Clutter Height')
-
+        % figure(7)
+        % pointsize = 10;
+        % scatter(RxPoints_XY(:,1),RxPoints_XY(:,2),pointsize,Features.ClutterHeight)
+        % % colorbar
+        % % caxis([-140 -50]);
+        % title('Average Clutter Height')
 
         % FeatureMatrix = [NearestBSDist,ClutterHeight,RelativeBSHeight,TerrainRoughness3D];
         % csvwrite('.\Data\',M)
 
-        % save(strcat("./Data/",dataname(p).name,'_BS',num2str(iter_BS),".mat"))
+        % save(strcat("./Data/Sim/Processed/",dataname(p).name,'_BS',num2str(iter_BS),".mat"))
 
     end
 

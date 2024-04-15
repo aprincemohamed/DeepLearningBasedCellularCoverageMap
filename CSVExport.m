@@ -1,9 +1,8 @@
 % Export the pre-processed Mat data as .csv
 
-Dirname = "./Data/Sim/"; % Lidar File Directory
 % dir
 % dir Dirname
-Dataname = dir(Dirname);
+Dataname = dir(ProcDirname);
 Dataname(1:2) = [];
 
 for q = 1:length(Dataname)
@@ -22,13 +21,13 @@ for q = 1:length(Dataname)
             % writetable(FeatureMatrix,strcat("./Data/",Filename(q),".csv"))
             Filename = Dataname(q).name;
             Filename(end-3:end) = [];
-            writetable(FeatureMatrix,strcat("./Data/",Filename,".csv"))
+            writetable(FeatureMatrix,strcat(CSVDirname,Filename,".csv"))
 
             
 
     
         case 'sim'
-            % 
+            
             % FeatureMatrix = [-simState.coverageItmMapsForEachCell{1,1}{1,1}(MaskInd)',NearestBSDist,ClutterHeight,RelativeBSHeight,Alpha];
             % FeatureMatrix = array2table(FeatureMatrix);
             % FeatureMatrix.Properties.VariableNames(1:5) = {'Pathloss','NearestBSDist','ClutterHeight','BSHeight','Alpha'};
@@ -40,7 +39,7 @@ for q = 1:length(Dataname)
             
             Filename = Dataname(q).name;
             Filename(end-3:end) = [];
-            writetable(FeatureMatrix,strcat("./Data/",Filename,".csv"))
+            writetable(FeatureMatrix,strcat(CSVDirname,Filename,".csv"))
     end
 
 end

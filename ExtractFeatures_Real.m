@@ -1,15 +1,8 @@
-clear all
-
 % DataType = 'real';
 
 % dataname = ["ACRE_S21","ACRE_Lyca","ACRE_GoogleFi"];
 % filename = ["./Data/ACRE/S21.csv","./Data/ACRE/lyca.csv","./Data/ACRE/google_fi.csv"];
-% 
-dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
-dir
-dir dirname
-dataname = dir(dirname);
-dataname(1:2) = [];
+
 
 for p = 1:length(dataname)
 
@@ -262,7 +255,7 @@ for p = 1:length(dataname)
         
     end
 
-    % These lines are for checking data
+    % Plot to check whether the features are generated correctly
     
     % figure(3)
     % % x = linspace(min(Features.ClutterHeight(:,1)),max(Features.ClutterHeight(:,1)),200) ;
@@ -308,7 +301,7 @@ for p = 1:length(dataname)
     % FeatureMatrix = [NearestBSDist,ClutterHeight,RelativeBSHeight,TerrainRoughness3D];
     % csvwrite('.\Data\',M)
     
-    save(strcat("./Data/",dataname(p),".mat"))
+    save(strcat("./Data/Real/Processed/",dataname(p),".mat"))
 
 
 end
