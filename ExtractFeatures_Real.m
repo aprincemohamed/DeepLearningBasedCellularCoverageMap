@@ -306,7 +306,9 @@ for p = 1:length(dataname)
     % FeatureMatrix = [NearestBSDist,ClutterHeight,RelativeBSHeight,TerrainRoughness3D];
     % csvwrite('.\Data\',M)
     
-    save(strcat("./Data/Real/Processed/",dataname(p),".mat"))
+    % save(strcat("./Data/Real/Processed/",dataname(p),".mat"))
+
+    CSVExport;
 
 
 end

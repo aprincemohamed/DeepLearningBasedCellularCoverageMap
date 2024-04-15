@@ -327,6 +327,7 @@ for p = 1:length(dataname)
         % csvwrite('.\Data\',M)
 
         % save(strcat("./Data/Sim/Processed/",dataname(p).name,'_BS',num2str(iter_BS),".mat"))
+        CSVExport;
 
     end
 
