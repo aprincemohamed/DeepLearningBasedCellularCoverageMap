@@ -1,16 +1,4 @@
-% clear all
-
-% Dataname = ["./Data/Lindberg_S20.mat","./Data/Lindberg_S8.mat","./Data/HappyHollows_S20.mat","./Data/HappyHollows_S8.mat","./Data/ACRE_Lyca.mat"];
-% Filename = ["Lindberg_S20","Lindberg_S8","HappyHollows_S20","HappyHollows_S8","ACRE_Lyca"];
-
-% Dataname = ["./Data/HappyHollows_S21.mat"];
-% Filename = ["HappyHollows_S21"];
-
-% Dataname = ["./Data/ACRE_GoogleFi.mat"];
-% Filename = ["ACRE_GoogleFi"];
-% 
-% Dataname = ["./Data/ACRE_S21.mat"];
-% Filename = ["ACRE_S21"];
+% Export the pre-processed Mat data as .csv
 
 Dirname = "./Data/Sim/"; % Lidar File Directory
 % dir

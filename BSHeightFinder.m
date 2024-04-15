@@ -207,7 +207,7 @@ for n = 1:length(CellLocTable(:,1))
     
     end
 
-    % Get BS Height
+    % Get BS Height 
     AoIMatrix = [DSMMatPerRxPoint.x,DSMMatPerRxPoint.y]; 
     RepMatXY = repmat([CellLocTable(n,4),CellLocTable(n,5)],length(AoIMatrix(:,1)),1);
     DistVec = sqrt(mean((AoIMatrix - RepMatXY).^2,2));

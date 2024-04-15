@@ -67,7 +67,7 @@ function CellLoc = CellLocFinder(cellId)
     ];
 
     CellLocTable = [CellLocTable,x,y];
-    CellLocTable(:,3) = 0.3048*CellLocTable(:,3);
+    CellLocTable(:,3) = 0.3048*CellLocTable(:,3); % Change unit from ft to m
 
     % CellLocTable = [CellLocTable(:,1:2),x,y];    
     % CellLocTable = [CellLocTable,BSHeight];

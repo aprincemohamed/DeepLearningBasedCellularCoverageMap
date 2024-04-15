@@ -1,6 +1,7 @@
+%%%%% This code generates bounding boxes for each tile %%%%%
+
 clear all
 
-% dirname = "E:\CellCoverageMapper\Lidar_2019\IN\DSM\QL2_3DEP_LiDAR_IN_2017_2019_l2\"; % Lidar File Directory
 dirname = "./Data/DHM/"; % Lidar File Directory
 % dirname = "./Data/DSM/"; % Lidar File Directory
 dir
@@ -31,7 +32,9 @@ for n = 3:length(listing)
         spatialRef.ProjectedCRS, ...
         lidarRasterXs(:), lidarRasterYs(:));
 
+    % min and max lat values
     listing(n).LatLim = [min(LidarTiles.lidarLats),max(LidarTiles.lidarLats)];
+    % min and max long values
     listing(n).LongLim = [min(LidarTiles.lidarLons),max(LidarTiles.lidarLons)];
 
 end
@@ -39,6 +42,13 @@ end
 
 listing(1:2) = [];
 clearvars -except listing
+
+
+% The following contains the bounding box of DHM files in ./Data/DHM
 save('./Data/TileAddressBook_DHM.mat')
+
+% The following contains the bounding box of DHM files in ./Data/DSM
 % save('./Data/TileAddressBook_DSM.mat')
+
+
 

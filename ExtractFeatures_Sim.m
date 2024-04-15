@@ -1,20 +1,18 @@
 clear all
 
-DataType = 'sim';
-
-% dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
-dirname = "./Data/ACRE/Sim/"; % Lidar File Directory
-dir
-dir dirname
-dataname = dir(dirname);
-dataname(1:2) = [];
+% DataType = 'sim';
+% 
+% % dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
+% dirname = "./Data/ACRE/Sim/"; % Lidar File Directory
+% dir
+% dir dirname
+% dataname = dir(dirname);
+% dataname(1:2) = [];
 
 for p = 1:length(dataname)
 
     dirname_DSM = "./Data/DSM/";
     dirname_DHM = "./Data/DHM/";
-    
-    
     
     % Load Sim Data
     % load("./Data/ACRE/ACRE_885MHz/simState.mat");
@@ -44,7 +42,6 @@ for p = 1:length(dataname)
     for iter_BS = 1:NumBS
 
         BSLocation = BSLocations(iter_BS,:);
-
 
         [lat,lon] = utm2deg(BSLocation(1),BSLocation(2),simConfigs.UTM_ZONE);
         BSLocation_LatLon = [lat,lon];
@@ -343,8 +340,7 @@ for p = 1:length(dataname)
         % FeatureMatrix = [NearestBSDist,ClutterHeight,RelativeBSHeight,TerrainRoughness3D];
         % csvwrite('.\Data\',M)
 
-        % save("./Data/LycaMobile.Mat")
-        save(strcat("./Data/",dataname(p).name,'_BS',num2str(iter_BS),".mat"))
+        % save(strcat("./Data/",dataname(p).name,'_BS',num2str(iter_BS),".mat"))
 
     end
 

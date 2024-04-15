@@ -1,3 +1,5 @@
+% Calculate the heights of the cells listed in CellLocFinder
+
 
 RxPoint_Lat = BSLocation_LatLon(1);
 RxPoint_Lon = BSLocation_LatLon(2);

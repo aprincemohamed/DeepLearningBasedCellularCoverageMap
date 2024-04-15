@@ -1,97 +1,51 @@
 clear all
 
 % DataType = 'real';
-% DataType = 'sim';
 
 % dataname = ["ACRE_S21","ACRE_Lyca","ACRE_GoogleFi"];
 % filename = ["./Data/ACRE/S21.csv","./Data/ACRE/lyca.csv","./Data/ACRE/google_fi.csv"];
-
-% dataname = ["Lindberg_S8","Lindberg_S20"];
-% filename = ["./Data/Lindberg Village/lindberg_s8.csv","./Data/Lindberg Village/lindberg_s20.csv"];
-
-% dataname = ["HappyHollows_S8","HappyHollows_S20","HappyHollows_S21"];
-% filename = ["./Data/Happy Hollows/happy_hallow_s8.csv","./Data/Happy Hollows/happy_hallow_s20.csv","./Data/Happy Hollows/happy_hallow_s21.csv"];
-
-% dataname = "Sim_885MHz_Verizon";
-% dataname = "Sim_1900MHz_Verizon";
-% dataname = "Sim_885MHz_ATT";
-
-% dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
-% dir
-% dir dirname
-% dataname = dir(dirname);
-% dataname(1:2) = [];
+% 
+dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
+dir
+dir dirname
+dataname = dir(dirname);
+dataname(1:2) = [];
 
 for p = 1:length(dataname)
 
     dirname_DSM = "./Data/DSM/";
     dirname_DHM = "./Data/DHM/";
-    
-    switch DataType
-        case 'real'
-            % Load Real Data
-    
-            DataPerOperator = readtable(filename(p));    
-            DataPerOperator(DataPerOperator.cell_name == 0,:) = [];
-            RxPoints = [DataPerOperator.latitude,DataPerOperator.longitude];
-            [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
-            RxPoints_XY = [x_tmp,y_tmp];
-    
-            NumRxPoints = length(RxPoints);
-            BSLocations = CellLocFinder(DataPerOperator.cell_name);
-            BSLocations_LatLon = BSLocations(:,1:2);
-            BSLocations = BSLocations(:,3:5);
-    
-            LatLim = [min(min(BSLocations_LatLon(:,1)),min(RxPoints(:,1))),max(max(BSLocations_LatLon(:,1)),max(RxPoints(:,1)))];
-            LongLim = [min(min(BSLocations_LatLon(:,2)),min(RxPoints(:,2))),max(max(BSLocations_LatLon(:,2)),max(RxPoints(:,2)))];
-    
-        case 'sim'
-    
-            % Load Sim Data
-            % load("./Data/ACRE/ACRE_885MHz/simState.mat");
-            % load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
-    
-            % load("./Data/ACRE/ACRE_1900MHz/simState.mat");
-            % load("./Data/ACRE/ACRE_1900MHz/simConfigs.mat");
 
-            load(strcat(dirname,dataname(p).name,'/simState.mat'))
-            load(strcat(dirname,dataname(p).name,'/simConfigs.mat'))
-            
-            RxPoints = simState.mapGridLatLonPts;
-            % MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0032 & RxPoints(:,2) < -86.9675);
-            % RxPoints = RxPoints(MaskInd,:);
-            [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
-            RxPoints_XY = [x_tmp,y_tmp];
-            
-            NumRxPoints = length(RxPoints);
-            BSLocations = simState.CellAntsXyhEffective;
-            
-            BSLocations = BSLocations(1,:); % Verizon 1
-            % BSLocations = BSLocations(3,:); % AT&T
+    % Import Measurement Data
     
-            NumBS = length(BSLocations(:,1));
+    DataPerOperator = readtable(filename(p));    
+    DataPerOperator(DataPerOperator.cell_name == 0,:) = [];
+    RxPoints = [DataPerOperator.latitude,DataPerOperator.longitude];
+    [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
+    RxPoints_XY = [x_tmp,y_tmp];
+
+    NumRxPoints = length(RxPoints);
+    BSLocations = CellLocFinder(DataPerOperator.cell_name);
+    BSLocations_LatLon = BSLocations(:,1:2);
+    BSLocations = BSLocations(:,3:5);
+
+    % Save Lat/Long Values in the Measurement Datasets
+
+    LatLim = [min(min(BSLocations_LatLon(:,1)),min(RxPoints(:,1))),max(max(BSLocations_LatLon(:,1)),max(RxPoints(:,1)))];
+    LongLim = [min(min(BSLocations_LatLon(:,2)),min(RxPoints(:,2))),max(max(BSLocations_LatLon(:,2)),max(RxPoints(:,2)))];
     
-            [lat,lon] = utm2deg(BSLocations(:,1),BSLocations(:,2),repmat(simConfigs.UTM_ZONE,NumBS,1));
-            BSLocations_LatLon = [lat,lon];
-            
-            
-            UTM_Zone_vec = repmat(simConfigs.UTM_ZONE,length(simState.mapGridXYPts(:,2)),1);
-            % [Lat,Long] = utm2deg(simState.mapGridXYPts(:,1),simState.mapGridXYPts(:,2),UTM_Zone_vec);
-            LatLim = [min(RxPoints(:,1)),max(RxPoints(:,1))];
-            LongLim = [min(RxPoints(:,2)),max(RxPoints(:,2))];
-    
-    end
-    
-    % Search for DSM Tiles
+    % Search for DSM Tiles that contains the Imported Measurement Points 
+    % above in Lat/Long 
     
     load("./Data/TileAddressBook_DSM.mat");
     
     LatLimMat = zeros(length(listing),2);
     LongLimMat = zeros(length(listing),2);
     for n = 1:length(listing)
-        LatLimMat(n,:) = listing(n).LatLim;
-        LongLimMat(n,:) = listing(n).LongLim;
+        LatLimMat(n,:) = listing(n).LatLim; % minimum/maximum lat of the nth tile
+        LongLimMat(n,:) = listing(n).LongLim; % minimum/maximum long of the nth tile
     end
+
     
     index1 = LatLimMat(:,1) <= LatLim(2) & LatLimMat(:,1) >= LatLim(1);
     index2 = (LatLimMat(:,2) <= LatLim(2) & LatLimMat(:,2) >= LatLim(1));
@@ -101,11 +55,11 @@ for p = 1:length(dataname)
     TileIndex = (index1 | index2) & (index3 | index4);
     % TileList = listing(TileIndex).name;
     
-    DSMAddressBook = listing;
+    DSMAddressBook = listing;    
     
     
-    
-    % Search for DHM Tiles
+    % Search for DHM Tiles that contains the Imported Measurement Points
+    % above in Lat/Long
     
     load("./Data/TileAddressBook_DHM.mat");
     
@@ -113,8 +67,8 @@ for p = 1:length(dataname)
     LatLimMat = zeros(length(listing),2);
     LongLimMat = zeros(length(listing),2);
     for n = 1:length(listing)
-        LatLimMat(n,:) = listing(n).LatLim;
-        LongLimMat(n,:) = listing(n).LongLim;
+        LatLimMat(n,:) = listing(n).LatLim; % minimum/maximum lat of the nth tile
+        LongLimMat(n,:) = listing(n).LongLim; % minimum/maximum long of the nth tile
     end
     
     
@@ -354,7 +308,6 @@ for p = 1:length(dataname)
     % FeatureMatrix = [NearestBSDist,ClutterHeight,RelativeBSHeight,TerrainRoughness3D];
     % csvwrite('.\Data\',M)
     
-    % save("./Data/LycaMobile.Mat")
     save(strcat("./Data/",dataname(p),".mat"))
 
 
