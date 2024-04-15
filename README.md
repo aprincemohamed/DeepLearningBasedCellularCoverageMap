@@ -11,6 +11,7 @@
 - **ExtractTileBoundaries.m**: Generates bounding boxes for DSM/DHM tiles
 - **CellLocFinder.m**: Returns cell locations
 - **MeasurementAnalysis.m**: Visualize data (Incomplete)
+- **Earfcn2Freq**: Convert EARFCN to carrier frequency
 - **LidarDataDownloader.py**: Download DSM/DHM files from Jinha Jung's server
 
 # Data
