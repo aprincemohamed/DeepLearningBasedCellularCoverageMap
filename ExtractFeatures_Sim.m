@@ -1,14 +1,3 @@
-% clear all
-
-% DataType = 'sim';
-% 
-% % dirname = "./Data/Lindberg Village/Sim/"; % Lidar File Directory
-% dirname = "./Data/ACRE/Sim/"; % Lidar File Directory
-% dir
-% dir dirname
-% dataname = dir(dirname);
-% dataname(1:2) = [];
-
 for p = 1:length(dataname)
 
     dirname_DSM = "./Data/DSM/";
@@ -18,8 +7,8 @@ for p = 1:length(dataname)
     % load("./Data/ACRE/ACRE_885MHz/simState.mat");
     % load("./Data/ACRE/ACRE_885MHz/simConfigs.mat");
 
-    load(strcat(dirname,dataname(p).name,'/simState.mat'))
-    load(strcat(dirname,dataname(p).name,'/simConfigs.mat'))
+    load(strcat(RawDirname,dataname(p).name,'/simState.mat'))
+    load(strcat(RawDirname,dataname(p).name,'/simConfigs.mat'))
     
     RxPoints = simState.mapGridLatLonPts;
     % MaskInd = (RxPoints(:,1) > 40.4648 & RxPoints(:,1) < 40.491) & (RxPoints(:,2) > -87.0032 & RxPoints(:,2) < -86.9675);

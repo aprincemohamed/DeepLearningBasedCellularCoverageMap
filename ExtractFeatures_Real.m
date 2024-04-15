@@ -1,7 +1,11 @@
-% DataType = 'real';
-
 % dataname = ["ACRE_S21","ACRE_Lyca","ACRE_GoogleFi"];
 % filename = ["./Data/ACRE/S21.csv","./Data/ACRE/lyca.csv","./Data/ACRE/google_fi.csv"];
+
+% dataname = ["Lindberg_S8","Lindberg_S20"];
+% filename = ["./Data/Lindberg Village/lindberg_s8.csv","./Data/Lindberg Village/lindberg_s20.csv"];
+
+% dataname = ["HappyHollows_S8","HappyHollows_S20","HappyHollows_S21"];
+% filename = ["./Data/Happy Hollows/happy_hallow_s8.csv","./Data/Happy Hollows/happy_hallow_s20.csv","./Data/Happy Hollows/happy_hallow_s21.csv"];
 
 
 for p = 1:length(dataname)
@@ -11,7 +15,8 @@ for p = 1:length(dataname)
 
     % Import Measurement Data
     
-    DataPerOperator = readtable(filename(p));    
+    % DataPerOperator = readtable(filename(p));    
+    DataPerOperator = readtable(strcat(RawDirname,dataname(p).name));
     DataPerOperator(DataPerOperator.cell_name == 0,:) = [];
     RxPoints = [DataPerOperator.latitude,DataPerOperator.longitude];
     [x_tmp,y_tmp,~] = deg2utm(RxPoints(:,1),RxPoints(:,2));
